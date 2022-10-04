@@ -1,0 +1,46 @@
+.walletConnected {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  padding: 8px;
+  font-size: 12px;
+  background: linear-gradient(
+        10.93deg,
+        #951990 -19.03%,
+        #3a35b1 46.85%,
+        #20a8b0
+      )
+      padding-box,
+    linear-gradient(12.93deg, #dd14d5, #4e47f5 55%, #3de8f3) border-box;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+}
+
+.walletConnected:hover {
+  opacity: 0.8;
+}
+
+.walletConnected button {
+  cursor: pointer;
+  background: black;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  color: white;
+  border-radius: 9999px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin-left: 8px;
+}
+
+.walletConnected button:hover {
+  background: rgba(255, 0, 0, 0.9);
+  color: white;
+}
+.walletConnected .blocky {
+  margin-right: 8px;
+}

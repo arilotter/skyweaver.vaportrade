@@ -1,0 +1,59 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: sans-serif;
+  background: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  border-bottom: 1px solid rgb(112, 91, 171);
+  height: 48px;
+  line-height: 48px;
+  color: white;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 16px;
+  align-items: center;
+}
+
+.connectButton {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(
+        10.93deg,
+        #951990 -19.03%,
+        #3a35b1 46.85%,
+        #20a8b0
+      )
+      padding-box,
+    linear-gradient(12.93deg, #dd14d5, #4e47f5 55%, #3de8f3) border-box;
+  border: 1.5px solid transparent;
+  color: white;
+  padding: 8px;
+  border-radius: 0.5rem;
+}
+
+.connectButton:hover {
+  opacity: 0.8;
+}
+.connectContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.blocky {
+  image-rendering: pixelated;
+  border-radius: 4px;
+}

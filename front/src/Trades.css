@@ -1,0 +1,154 @@
+.header {
+  display: flex;
+  padding: 8px;
+}
+
+.headerText {
+  margin: 0 8px;
+}
+
+.headerText h2 {
+  margin: 0;
+}
+
+.headerText h4 {
+  font-weight: 400;
+  margin: 2px 0;
+  font-size: small;
+}
+.tradesTabs {
+  padding: 16px;
+  display: flex;
+}
+
+.tradesTab {
+  border: 2px solid white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px;
+  padding: 8px;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+.tradesTab .blocky {
+  margin: 0 4px;
+  border-radius: 4px;
+}
+
+.tradesTab:has(input:checked) {
+  background: white;
+  color: black;
+}
+
+.tradesTab input {
+  visibility: hidden;
+  width: 0;
+  margin: 0;
+}
+
+.yourItemsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refreshButton {
+  margin-left: 8px;
+  font-size: 24px;
+  height: 32px;
+  width: 32px;
+  line-height: 0px;
+  background: black;
+  border: 2px solid white;
+  color: white;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.refreshButton:hover {
+  background: white;
+  color: black;
+}
+
+.gridSearch {
+  display: block;
+  background: black;
+  border-radius: 999px;
+  color: white;
+  border: 2px solid white;
+  padding: 4px 16px;
+  font-size: 18px;
+  width: calc(100% - 128px);
+  margin: 0 auto;
+}
+.gridSearch::placeholder {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.token {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+.token img {
+  height: 100%;
+}
+
+.token.isEmpty {
+  opacity: 0.5;
+}
+
+.balanceBubble {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: black;
+  border: 2px solid white;
+  min-width: 28px;
+  padding: 0 8px;
+  height: 28px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.tokenBalanceGrid {
+  padding: 16px 0;
+  text-align: center;
+}
+
+.placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  display: inline-flex;
+  align-items: center;
+  padding: 16px;
+  justify-content: center;
+}
+
+.removeBubble {
+  cursor: pointer;
+  background: black;
+  border: none;
+  color: red;
+  margin-left: 8px;
+}
+
+.feesSelector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px;
+  padding: 8px;
+  border-top: 1px solid white;
+  border-bottom: 1px solid white;
+}
+
+.myTokens {
+  max-height: 512px;
+  overflow: scroll;
+}

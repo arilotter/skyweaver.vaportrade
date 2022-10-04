@@ -1,0 +1,33 @@
+.onlineUser {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onlineUser span {
+  padding: 0 8px;
+}
+
+.onlineUser button {
+  background: black;
+  color: white;
+  border: 2px solid white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px;
+  padding: 8px;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.onlineUser button:hover {
+  background: white;
+  color: black;
+}
+
+.onlineUser .hasAcceptButton {
+  background: rgb(0, 216, 0);
+  color: black;
+}
