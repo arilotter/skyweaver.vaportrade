@@ -1,27 +1,20 @@
+import { SequenceIndexerClient, TokenBalance } from "@0xsequence/indexer";
+import { BigNumber } from "@ethersproject/bignumber";
+import { NftSwapV3 } from "@traderxyz/nft-swap-sdk";
+import { useEffect, useState } from "react";
+import Blocky from "react-blockies";
 import {
   Address,
-  Asset,
-  isAsset,
-  isSameAsset,
   SW_CONTRACT,
   Trade,
-  UpdateTradeMessage,
-  isSwContract,
   USDC_CONTRACT,
   VTMessage,
 } from "../../../../shared";
-import { SequenceIndexerClient, TokenBalance } from "@0xsequence/indexer";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { NftSwapV3 } from "@traderxyz/nft-swap-sdk";
-import { niceBalance } from "../../utils";
-import { BigNumber } from "@ethersproject/bignumber";
-import Blocky from "react-blockies";
-import "./Trades.css";
-import { UsersList } from "../UsersList";
-import { FixedNumber } from "ethers";
-import { ResponsiveAddress } from "../ResponsiveAddress";
 import { FilterTokenBalanceGrid } from "../FilterTokenBalanceGrid";
+import { ResponsiveAddress } from "../ResponsiveAddress";
 import { TradeUI } from "../TradeUI";
+import { UsersList } from "../UsersList";
+import "./Trades.css";
 
 export function Trades({
   trades,

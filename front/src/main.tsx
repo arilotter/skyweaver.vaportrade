@@ -1,5 +1,5 @@
-import { getWallet, initWallet, Wallet } from "0xsequence";
-import React, { useEffect, useState } from "react";
+import { initWallet } from "0xsequence";
+import React from "react";
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
 import "./index.css";

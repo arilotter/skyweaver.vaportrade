@@ -4,8 +4,8 @@ import { ServerConnection } from "./components/ServerConnection";
 import skyweaverLogo from "./assets/sw.png";
 import vaportradeIcon from "./assets/vaportrade.png";
 
-import "./App.css";
 import { useState } from "react";
+import "./App.css";
 import { Credits } from "./components/Credits";
 
 export function App() {

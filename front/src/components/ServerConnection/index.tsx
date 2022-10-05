@@ -1,10 +1,10 @@
 import { Wallet } from "0xsequence";
+import { NftSwapV3 } from "@traderxyz/nft-swap-sdk";
 import { useEffect, useMemo, useState } from "react";
 import { ReadyState } from "react-use-websocket";
-import { Trade, isVTMessage, VTMessage, Address } from "../../../../shared";
-import { Trades } from "../Trades";
+import { Address, isVTMessage, Trade, VTMessage } from "../../../../shared";
 import { useWebSocket } from "../../useWebSocket";
-import { NftSwapV3 } from "@traderxyz/nft-swap-sdk";
+import { Trades } from "../Trades";
 import { WalletConnected } from "../WalletConnected";
 
 import "./ServerConnection.css";
@@ -52,7 +52,7 @@ export function ServerConnection({
   }, [lastJsonMessage]);
 
   const trader = useMemo(
-    () => new NftSwapV3(wallet.getProvider()!, wallet.getSigner(), 137, {}),
+    () => new NftSwapV3(wallet.getProvider()!, wallet.getSigner(), 137),
     [wallet]
   );
 

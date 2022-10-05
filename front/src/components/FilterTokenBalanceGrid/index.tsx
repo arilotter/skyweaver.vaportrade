@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { TokenBalanceGrid, TokenBalanceGridProps } from "../TokenBalanceGrid";
 
 import "./FilterTokenBalanceGrid.css";

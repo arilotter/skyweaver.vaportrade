@@ -31,17 +31,27 @@ export function Credits({ onClose }: CreditsProps) {
         </p>
         <h2>Dependencies</h2>
         <p>
-          <a href="https://docs.swapsdk.xyz">nft-swap-sdk</a>,{" "}
-          <a href="https://0x.org/">0x v3</a>,{" "}
-          <a href="https://sequence.xyz/">sequence.js</a>,{" "}
-          <a href="https://ethers.org/">ethers</a>,{" "}
+          <a href="https://docs.swapsdk.xyz">nft-swap-sdk</a>
+          {", "}
+          <a href="https://0x.org/">0x v3</a>
+          {", "}
+          <a href="https://sequence.xyz/">sequence.js</a>
+          {", "}
+          <a href="https://ethers.org/">ethers</a>
+          {", "}
           <a href="https://github.com/stephensprinkle-zz/react-blockies">
             react blockies
           </a>
+          {", "}
           <a href="https://github.com/robtaussig/react-use-websocket">
             react-use-websocket
           </a>
-          , &amp; <a href="https://reactjs.org/">react</a>
+          {", "}
+          <a href="https://reactjs.org/">react</a>
+          {", "}
+          <a href="https://www.typescriptlang.org/">typescript</a>
+          {", and "}
+          <a href="https://vitejs.dev/">vite</a>
         </p>
         <p>
           Vaportrade &times; Skyweaver is dedicated to everyone in the Skyweaver

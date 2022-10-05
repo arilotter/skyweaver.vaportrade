@@ -1,11 +1,11 @@
 import { getWallet, Wallet } from "0xsequence";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import sequenceLogo from "./sequence-icon.svg";
 import sequenceWordmark from "./sequence-wordmark.svg";
 
-import "./ConnectButton.css";
 import { Address } from "../../../../shared";
+import "./ConnectButton.css";
 
 export function Connect({
   afterConnect,

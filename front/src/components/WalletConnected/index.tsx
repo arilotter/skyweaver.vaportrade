@@ -1,7 +1,7 @@
 import { Wallet } from "0xsequence";
-import { ResponsiveAddress } from "../ResponsiveAddress";
 import Blocky from "react-blockies";
 import { Address } from "../../../../shared";
+import { ResponsiveAddress } from "../ResponsiveAddress";
 
 import "./WalletConnected.css";
 

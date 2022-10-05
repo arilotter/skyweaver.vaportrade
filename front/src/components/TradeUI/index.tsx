@@ -1,12 +1,12 @@
-import { TokenBalance, SequenceIndexerClient } from "@0xsequence/indexer";
+import { TokenBalance } from "@0xsequence/indexer";
 import { BigNumber, FixedNumber } from "ethers";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback } from "react";
 import {
   Address,
-  Trade,
   Asset,
   isSameAsset,
   SW_CONTRACT,
+  Trade,
   USDC_CONTRACT,
 } from "../../../../shared";
 import { niceBalance } from "../../utils";

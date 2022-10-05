@@ -1,5 +1,5 @@
 import { TokenBalance } from "@0xsequence/indexer";
-import { FixedNumber, BigNumber } from "ethers";
+import { BigNumber, FixedNumber } from "ethers";
 
 export function niceBalance(b: TokenBalance): FixedNumber {
   const decimals = b.tokenMetadata?.decimals ?? b.contractInfo?.decimals ?? 0;
