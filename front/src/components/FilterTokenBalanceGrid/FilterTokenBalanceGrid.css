@@ -1,0 +1,14 @@
+.gridSearch {
+  display: block;
+  background: black;
+  border-radius: 999px;
+  color: white;
+  border: 2px solid white;
+  padding: 4px 16px;
+  font-size: 18px;
+  width: calc(100% - 128px);
+  margin: 0 auto;
+}
+.gridSearch::placeholder {
+  color: rgba(255, 255, 255, 0.9);
+}

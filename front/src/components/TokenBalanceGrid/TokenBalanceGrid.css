@@ -1,0 +1,51 @@
+.tokenBalanceGrid {
+  padding: 16px 0;
+  text-align: center;
+}
+
+.token {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+.token img {
+  height: 100%;
+}
+
+.token.isEmpty {
+  opacity: 0.5;
+}
+
+.balanceBubble {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: black;
+  border: 2px solid white;
+  min-width: 28px;
+  padding: 0 8px;
+  height: 28px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  display: inline-flex;
+  align-items: center;
+  padding: 16px;
+  justify-content: center;
+}
+
+.removeBubble {
+  cursor: pointer;
+  background: black;
+  border: none;
+  color: red;
+  margin-left: 8px;
+}

@@ -78,6 +78,9 @@ wss.on("connection", (ws) => {
               feePayer: "a",
               aAssets: [],
               bAssets: [],
+              aLockedIn: false,
+              bLockedIn: false,
+              signedOrder: null,
             });
             updateTradesInvolvingMe(fromAddr);
             updateTradesInvolvingMe(toAddr);
@@ -119,12 +122,22 @@ wss.on("connection", (ws) => {
             : trade.userA === fromAddr
             ? "b"
             : "a";
+          trade.aLockedIn = false;
+          trade.bLockedIn = false;
+        } else if ("lockIn" in msg) {
+          if (trade.userA === fromAddr) {
+            trade.aLockedIn = true;
+          } else {
+            trade.bLockedIn = true;
+          }
         } else {
           if (trade.userA === fromAddr) {
             trade.aAssets = msg.myOffer;
           } else {
             trade.bAssets = msg.myOffer;
           }
+          trade.aLockedIn = false;
+          trade.bLockedIn = false;
         }
         updateTradesInvolvingMe(fromAddr);
         updateTradesInvolvingMe(msg.with);

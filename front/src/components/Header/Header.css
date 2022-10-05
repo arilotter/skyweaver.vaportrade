@@ -1,0 +1,18 @@
+.header {
+  display: flex;
+  padding: 8px;
+}
+
+.headerText {
+  margin: 0 8px;
+}
+
+.headerText h2 {
+  margin: 0;
+}
+
+.headerText h4 {
+  font-weight: 400;
+  margin: 2px 0;
+  font-size: small;
+}

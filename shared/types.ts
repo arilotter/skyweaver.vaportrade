@@ -1,3 +1,23 @@
+interface Order {
+  makerAddress: string;
+  takerAddress: string;
+  feeRecipientAddress: string;
+  senderAddress: string;
+  makerAssetAmount: string;
+  takerAssetAmount: string;
+  makerFee: string;
+  takerFee: string;
+  expirationTimeSeconds: string;
+  salt: string;
+  makerAssetData: string;
+  takerAssetData: string;
+  makerFeeAssetData: string;
+  takerFeeAssetData: string;
+  signature?: string;
+}
+interface SignedOrder extends Order {
+  signature: string;
+}
 export type Address = string;
 export function isAddress(x: unknown): x is Address {
   return typeof x === "string" && x.startsWith("0x");
@@ -53,6 +73,7 @@ export interface Trade {
   bAssets: Asset[];
   aLockedIn: boolean;
   bLockedIn: boolean;
+  signedOrder: SignedOrder | null;
 }
 
 // TODO isTrade
@@ -84,4 +105,5 @@ export type UpdateTradeMessage = { type: "update_trade"; with: Address } & (
       myOffer: Asset[];
     }
   | { iPayFees: boolean }
+  | { lockIn: true }
 );

@@ -1,0 +1,12 @@
+.responsiveAddress {
+  text-overflow: ellipsis;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.responsiveAddressContainer {
+  display: inline-flex;
+  white-space: nowrap;
+  overflow: hidden;
+}

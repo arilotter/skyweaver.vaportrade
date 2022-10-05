@@ -1,0 +1,76 @@
+.lockInContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lockInContainer button {
+  color: white;
+
+  border-radius: 0.5rem;
+  padding: 8px;
+  font-size: 18px;
+  background: linear-gradient(
+        10.93deg,
+        #951990 -19.03%,
+        #3a35b1 46.85%,
+        #20a8b0
+      )
+      padding-box,
+    linear-gradient(12.93deg, #dd14d5, #4e47f5 55%, #3de8f3) border-box;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+}
+.lockInContainer button:disabled {
+  color: white;
+
+  border-radius: 0.5rem;
+  padding: 8px;
+  font-size: 18px;
+  background: linear-gradient(
+        10.93deg,
+        #858585 -19.03%,
+        #aaaaaa 46.85%,
+        #adadad
+      )
+      padding-box,
+    linear-gradient(12.93deg, #dedede, #f0f0f0 55%, #eeeeee) border-box;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+}
+
+.lockInContainer button:not(:disabled):hover {
+  opacity: 0.5;
+}
+
+.feesSelector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px;
+  padding: 8px;
+  border-top: 1px solid white;
+  border-bottom: 1px solid white;
+}
+
+.feesSelector label {
+  background: black;
+  color: white;
+  border: 2px solid white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px;
+  padding: 8px;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 0;
+}
+.feesSelector label input {
+  margin: 0 4px;
+}
+
+.feesSelector label:has(input:checked) {
+  background: white;
+  color: black;
+}

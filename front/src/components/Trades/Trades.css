@@ -1,0 +1,79 @@
+.tradesTabs {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tradesTab {
+  background: black;
+  color: white;
+  border: 2px solid white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px;
+  padding: 8px;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 0;
+  text-align: center;
+}
+
+.tradesTab .blocky {
+  margin: 0 4px;
+}
+
+.tradesTab:has(input:checked) {
+  background: white;
+  color: black;
+}
+
+.tradesTab input {
+  visibility: hidden;
+  width: 0;
+  margin: 0;
+}
+
+.yourItemsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refreshButton {
+  margin-left: 8px;
+  font-size: 24px;
+  height: 32px;
+  width: 32px;
+  line-height: 0px;
+  background: black;
+  border: 2px solid white;
+  color: white;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.refreshButton:hover {
+  background: white;
+  color: black;
+}
+
+.myTokens {
+  max-height: 512px;
+  overflow: scroll;
+}
+
+.activeTradeContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 10px;
+}
+
+.loadingBalances {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
