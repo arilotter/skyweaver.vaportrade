@@ -1,0 +1,16 @@
+.title {
+  border-bottom: 1px solid rgb(112, 91, 171);
+  height: 48px;
+  line-height: 48px;
+  color: white;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 16px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.title img {
+  padding: 0 8px;
+  height: 60%;
+}

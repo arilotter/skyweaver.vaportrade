@@ -1,0 +1,51 @@
+.credits {
+  max-width: 800px;
+  border: 2px solid white;
+  border-radius: 8px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: 64px;
+  white-space: wrap;
+  background-color: black;
+}
+
+.credits button {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 48px;
+  padding: 0 16px;
+  position: absolute;
+}
+
+.creditsContents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+  padding-bottom: 8px;
+}
+
+.credits a {
+  color: lightblue;
+}
+
+.credits h1 {
+  border-bottom: 2px solid white;
+  margin-top: 16px;
+  margin-bottom: 0;
+}
+
+.credits h2 {
+  margin-bottom: 0;
+}
+
+.credits p {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
