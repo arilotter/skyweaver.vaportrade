@@ -1,6 +1,9 @@
+import { sequence } from "0xsequence";
 import { TokenBalance } from "@0xsequence/indexer";
+import { randomBytes } from "@ethersproject/random";
+import { NftSwapV3, SignedOrder } from "@traderxyz/nft-swap-sdk";
 import { BigNumber, FixedNumber } from "ethers";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import {
   Address,
   Asset,
@@ -8,9 +11,11 @@ import {
   SW_CONTRACT,
   Trade,
   USDC_CONTRACT,
+  makeSwappableAsset,
 } from "../../../../shared";
 import { niceBalance } from "../../utils";
 import { Header } from "../Header";
+import { LockIn } from "../LockIn";
 import { TokenBalanceGrid } from "../TokenBalanceGrid";
 
 import "./TradeUI.css";
@@ -20,27 +25,26 @@ export function TradeUI({
   trade,
   setMyTradeOffer,
   setIPayFees,
-  lockIn,
+  setLockedIn,
+  setSignedOrder,
   style,
   tokenBalances,
+  trader,
 }: {
   address: Address;
   trade: Trade;
+  trader: NftSwapV3;
   setMyTradeOffer: (assets: Asset[]) => void;
   setIPayFees: (iPayFees: boolean) => void;
-  lockIn: () => void;
+  setLockedIn: (lockedIn: boolean) => void;
+  setSignedOrder: (signedOrder: SignedOrder) => void;
   style?: React.CSSProperties;
   tokenBalances: Map<Address, TokenBalance[]>;
 }) {
-  const iPayFees = trade.feePayer === (address === trade.userA ? "a" : "b");
-  const me =
-    address === trade.userA
-      ? { addr: trade.userA, assets: trade.aAssets, lockedIn: trade.aLockedIn }
-      : { addr: trade.userB, assets: trade.bAssets, lockedIn: trade.bLockedIn };
-  const them =
-    address === trade.userB
-      ? { addr: trade.userA, assets: trade.aAssets, lockedIn: trade.aLockedIn }
-      : { addr: trade.userB, assets: trade.bAssets, lockedIn: trade.bLockedIn };
+  const meIndex = trade.users.findIndex((t) => t.address === address);
+  const me = trade.users[meIndex];
+  const them = trade.users[1 - meIndex];
+  const iPayFees = meIndex === trade.feePayer;
 
   const onDrop = useCallback(
     (asset: Asset) => {
@@ -122,14 +126,59 @@ export function TradeUI({
     },
     [address, trade]
   );
+
+  useEffect(() => {
+    if (me.lockedIn && them.lockedIn && !iPayFees && !trade.signedOrder) {
+      const expiryTime = new Date(new Date().getTime() + 5 * 60000); // now + 5m
+      console.log("I AM MAKER");
+      const order = trader.buildOrder(
+        me.assets.map(makeSwappableAsset),
+        them.assets.map(makeSwappableAsset),
+        me.address,
+        {
+          takerAddress: them.address,
+          chainId: 137,
+          salt: BigNumber.from([1, 2, 7, 3, ...randomBytes(28)]).toString(), // get a real salt to sign this order
+          expiration: expiryTime,
+        }
+      );
+      // pop wallet to sign :)
+      trader
+        .signOrder(order, me.address, undefined, {
+          signatureType: "eip1271",
+        })
+        .then((signedOrder) => {
+          setSignedOrder(signedOrder);
+        })
+        .catch((err) => {
+          setLockedIn(false);
+          alert(err);
+        });
+    }
+  }, [trade]);
+  console.log("Signed Order:", trade.signedOrder);
+
+  const tradeState = !me.lockedIn
+    ? "lock_in"
+    : !them.lockedIn
+    ? "waiting_for_partner"
+    : iPayFees
+    ? trade.signedOrder
+      ? "submit_order"
+      : "waiting_for_partner"
+    : trade.signedOrder
+    ? "waiting_for_partner"
+    : "waiting_for_signature";
+
+  console.log("I pay fees? ", iPayFees);
   return (
     <div style={style}>
-      <Header address={me.addr} isYou />
+      <Header address={me.address} isYou />
       <TokenBalanceGrid
         tokens={me.assets
           .map((asset) => {
             const meta = tokenBalances
-              .get(me.addr)
+              .get(me.address)
               ?.find(
                 (bal) =>
                   bal.contractAddress === asset.address &&
@@ -148,9 +197,22 @@ export function TradeUI({
         }}
       />
       <div className="lockInContainer">
-        <button disabled={me.lockedIn} onClick={lockIn}>
-          &#x1F512; Lock{me.lockedIn ? "ed" : ""} In &#x1F512;
-        </button>
+        <LockIn
+          state={tradeState}
+          onClick={() => {
+            if (tradeState === "submit_order") {
+              trader
+                .fillSignedOrder(trade.signedOrder!, undefined, {
+                  gasLimit: 100000000000000,
+                })
+                .then(() => {
+                  alert("Trade success!");
+                });
+            } else {
+              setLockedIn(true);
+            }
+          }}
+        />
       </div>
       <div className="feesSelector">
         <label>
@@ -177,12 +239,12 @@ export function TradeUI({
           They'll pay fees
         </label>
       </div>
-      <Header address={them.addr} isYou={false} />
+      <Header address={them.address} isYou={false} />
       <TokenBalanceGrid
         tokens={them.assets
           .map((asset) => {
             const meta = tokenBalances
-              .get(them.addr)
+              .get(them.address)
               ?.find(
                 (bal) =>
                   bal.contractAddress === asset.address &&

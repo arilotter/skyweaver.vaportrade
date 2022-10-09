@@ -41,36 +41,16 @@ export function Trades({
   >(new Map());
 
   // If we start a trade, pick it.
+  // Drop active trade if it disappears from trades list
   useEffect(() => {
-    if (trades.length && lastNumTrades < trades.length) {
+    if (trades.length && lastNumTrades !== trades.length) {
       const newTrade = trades[trades.length - 1];
       setActiveTrade(
-        newTrade.userA === address ? newTrade.userB : newTrade.userA
+        newTrade.users.find((u) => u.address !== address)!.address
       );
     }
     setLastNumTrades(trades.length);
   }, [trades, setActiveTrade, lastNumTrades]);
-
-  // Drop active trade if it disappears from trades list
-  useEffect(() => {
-    if (
-      activeTradePartner &&
-      !trades.some(
-        (trade) =>
-          trade.userA === activeTradePartner ||
-          trade.userB === activeTradePartner
-      )
-    ) {
-      if (trades.length > 0) {
-        const newTrade = trades[trades.length - 1];
-        setActiveTrade(
-          newTrade.userA === address ? newTrade.userB : newTrade.userA
-        );
-      } else {
-        setActiveTrade(null);
-      }
-    }
-  }, [trades, activeTradePartner, setActiveTrade]);
 
   // Refresh everyone's balances when we change set of addresses!
   useEffect(() => {
@@ -94,7 +74,9 @@ export function Trades({
 
   // Refresh set of addresses when trades change, but only if needed
   useEffect(() => {
-    const tradeAddresses = new Set(trades.flatMap((t) => [t.userA, t.userB]));
+    const tradeAddresses = new Set(
+      trades.flatMap((t) => t.users.map((u) => u.address))
+    );
     const hasNewAddress = [...tradeAddresses].some((a) => !allAddresses.has(a));
     if (hasNewAddress) {
       setAllAddresses(tradeAddresses);
@@ -102,28 +84,22 @@ export function Trades({
   }, [trades]);
 
   const activeTrade = activeTradePartner
-    ? trades.find(
-        (t) => t.userB === activeTradePartner || t.userA === activeTradePartner
-      )
+    ? trades.find((t) => t.users.some((u) => u.address === activeTradePartner))
     : null;
 
-  const partner = activeTrade
-    ? address === activeTrade.userA
-      ? activeTrade.userB
-      : activeTrade.userA
+  const them = activeTrade
+    ? activeTrade.users.find((u) => u.address !== address)
     : null;
 
-  const myItems = activeTrade
-    ? address === activeTrade.userA
-      ? activeTrade.aAssets
-      : activeTrade.bAssets
+  const me = activeTrade
+    ? activeTrade.users.find((u) => u.address === address)
     : null;
 
   let tokenBalancesMinusActiveTrade: TokenBalance[] = [];
-  if (myItems && tokenBalances.has(address)) {
+  if (me && tokenBalances.has(address)) {
     const allTokens = tokenBalances.get(address)!;
     tokenBalancesMinusActiveTrade = allTokens.map((t) => {
-      const inTrade = myItems.find(
+      const inTrade = me.assets.find(
         (i) =>
           i.address === t.contractAddress &&
           (i.address !== SW_CONTRACT || i.id === t.tokenID)
@@ -150,7 +126,7 @@ export function Trades({
           />
         </label>
         {trades.map((t) => {
-          const notMe = t.userA === address ? t.userB : t.userA;
+          const notMe = t.users.find((t) => t.address !== address)!.address;
           return (
             <label key={`${notMe}-radio`} className="tradesTab">
               <Blocky
@@ -169,7 +145,7 @@ export function Trades({
           );
         })}
       </div>
-      {!!(activeTrade && partner) ? (
+      {!!(activeTrade && me && them) ? (
         <>
           <div className="activeTradeContainer">
             <div>
@@ -195,7 +171,8 @@ export function Trades({
               </div>
             </div>
             <TradeUI
-              key={activeTrade.userA + activeTrade.userB}
+              key={me.address + them.address}
+              trader={trader}
               address={address}
               trade={activeTrade}
               tokenBalances={tokenBalances}
@@ -205,22 +182,29 @@ export function Trades({
               setIPayFees={(iPayFees) =>
                 sendMessage({
                   type: "update_trade",
-                  with: partner,
+                  with: them.address,
                   iPayFees,
                 })
               }
               setMyTradeOffer={(myOffer) =>
                 sendMessage({
                   type: "update_trade",
-                  with: partner,
+                  with: them.address,
                   myOffer,
                 })
               }
-              lockIn={() => {
+              setLockedIn={(lockIn) => {
                 sendMessage({
                   type: "update_trade",
-                  with: partner,
-                  lockIn: true,
+                  with: them.address,
+                  lockIn,
+                });
+              }}
+              setSignedOrder={(signedOrder) => {
+                sendMessage({
+                  type: "update_trade",
+                  with: them.address,
+                  signedOrder,
                 });
               }}
             />
@@ -229,7 +213,7 @@ export function Trades({
       ) : (
         <UsersList
           users={users.filter(
-            (u) => !trades.some((t) => t.userA === u || t.userB === u)
+            (u) => !trades.some((t) => t.users.some((tu) => tu.address === u))
           )}
           tradeRequests={tradeRequests}
           sendTradeRequest={(address) => {

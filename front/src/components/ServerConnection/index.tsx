@@ -52,7 +52,7 @@ export function ServerConnection({
   }, [lastJsonMessage]);
 
   const trader = useMemo(
-    () => new NftSwapV3(wallet.getProvider()!, wallet.getSigner(), 137),
+    () => new NftSwapV3(wallet.getProvider(137)!, wallet.getSigner(137), 137),
     [wallet]
   );
 

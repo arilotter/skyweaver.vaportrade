@@ -1,5 +1,13 @@
+import { NftSwapV3, Order, SignedOrder } from "@traderxyz/nft-swap-sdk";
 import { WebSocket, WebSocketServer } from "ws";
-import { Address, Trade, VTMessage, isVTMessage } from "../../shared";
+import {
+  Address,
+  Trade,
+  VTMessage,
+  isVTMessage,
+  makeSwappableAsset,
+} from "../../shared";
+import { ethers } from "ethers";
 const wss = new WebSocketServer({ port: 6969 });
 
 const wsToAddr = new Map<WebSocket, Address>();
@@ -19,8 +27,8 @@ function sendUsersList() {
 }
 
 function updateTradesInvolvingMe(address: Address) {
-  const tradesInvolvingMe = trades.filter(
-    (t) => t.userA === address || t.userB === address
+  const tradesInvolvingMe = trades.filter((t) =>
+    t.users.some((u) => u.address === address)
   );
   const client = addrToWs.get(address);
   if (client) {
@@ -67,24 +75,24 @@ wss.on("connection", (ws) => {
           // we're accepting a trade!
           tradeRequestsTo.get(fromAddr)!.delete(toAddr);
           if (
-            !trades.some((trade) => {
-              (trade.userA === fromAddr && trade.userB === toAddr) ||
-                (trade.userB === fromAddr && trade.userA === toAddr);
-            })
+            trades.some((trade) => tradeIsBetweenUsers(trade, fromAddr, toAddr))
           ) {
-            trades.push({
-              userA: fromAddr,
-              userB: toAddr,
-              feePayer: "a",
-              aAssets: [],
-              bAssets: [],
-              aLockedIn: false,
-              bLockedIn: false,
-              signedOrder: null,
-            });
-            updateTradesInvolvingMe(fromAddr);
-            updateTradesInvolvingMe(toAddr);
+            return; // trade already exists
           }
+          trades.push({
+            users: [
+              {
+                address: fromAddr,
+                assets: [],
+                lockedIn: false,
+              },
+              { address: toAddr, assets: [], lockedIn: false },
+            ],
+            feePayer: 0,
+            signedOrder: null,
+          });
+          updateTradesInvolvingMe(fromAddr);
+          updateTradesInvolvingMe(toAddr);
         } else {
           // we're sending the request!
           if (!tradeRequestsTo.has(msg.address)) {
@@ -105,39 +113,38 @@ wss.on("connection", (ws) => {
         };
         ws.send(JSON.stringify(tradeReqFrom));
       } else if (msg.type === "update_trade") {
-        const trade = trades.find(
-          (t) =>
-            (t.userA === fromAddr && t.userB === msg.with) ||
-            (t.userA === msg.with && t.userB === fromAddr)
+        const trade = trades.find((t) =>
+          tradeIsBetweenUsers(t, msg.with, fromAddr)
         );
         if (!trade) {
           throw new Error("no trade in progress with that user!");
         }
         if ("iPayFees" in msg) {
           // TODO smelly code here.. do boolean reduction truth table jazz to simplify. i'm sleepy.
-          trade.feePayer = msg.iPayFees
-            ? trade.userA === fromAddr
-              ? "a"
-              : "b"
-            : trade.userA === fromAddr
-            ? "b"
-            : "a";
-          trade.aLockedIn = false;
-          trade.bLockedIn = false;
+          const meIndex = trade.users.findIndex(
+            ({ address }) => address === fromAddr
+          ) as 0 | 1;
+          trade.feePayer = msg.iPayFees ? meIndex : ((1 - meIndex) as 0 | 1);
+          resetTradeOnChange(trade);
         } else if ("lockIn" in msg) {
-          if (trade.userA === fromAddr) {
-            trade.aLockedIn = true;
-          } else {
-            trade.bLockedIn = true;
+          trade.users.find((u) => u.address === fromAddr)!.lockedIn =
+            msg.lockIn;
+          trade.signedOrder = null;
+        } else if ("signedOrder" in msg) {
+          const verificationErr = isOrderSameAsSignedOrder(
+            msg.signedOrder,
+            trade
+          );
+          if (typeof verificationErr === "string") {
+            throw new Error(`Signed order is not correct - ${verificationErr}`);
           }
+          trade.signedOrder = msg.signedOrder;
+        } else if ("myOffer" in msg) {
+          trade.users.find((u) => u.address === fromAddr)!.assets = msg.myOffer;
+          resetTradeOnChange(trade);
         } else {
-          if (trade.userA === fromAddr) {
-            trade.aAssets = msg.myOffer;
-          } else {
-            trade.bAssets = msg.myOffer;
-          }
-          trade.aLockedIn = false;
-          trade.bLockedIn = false;
+          const never: never = msg;
+          throw new Error("unexpected trade message " + never);
         }
         updateTradesInvolvingMe(fromAddr);
         updateTradesInvolvingMe(msg.with);
@@ -157,12 +164,13 @@ wss.on("connection", (ws) => {
       tradeRequestsTo.delete(addr);
 
       // Close trade if both users are offline
-      const tradesInvolvingMe = trades.filter(
-        (trade) => trade.userA === addr || trade.userB === addr
+      const tradesInvolvingMe = trades.filter((trade) =>
+        trade.users.some(({ address }) => address === addr)
       );
+      // remove trades involving me
       trades = trades.filter((trade) => !tradesInvolvingMe.includes(trade));
       const partnersAddrs = new Set(
-        tradesInvolvingMe.flatMap((trade) => [trade.userA, trade.userB])
+        tradesInvolvingMe.flatMap((trade) => trade.users.map((u) => u.address))
       );
       for (const addr of partnersAddrs) {
         updateTradesInvolvingMe(addr);
@@ -172,3 +180,93 @@ wss.on("connection", (ws) => {
     sendUsersList();
   });
 });
+
+function resetTradeOnChange(trade: Trade) {
+  trade.users.forEach((u) => (u.lockedIn = false));
+  trade.signedOrder = null;
+}
+
+const trader = new NftSwapV3(
+  new ethers.providers.JsonRpcProvider("https://nodes.sequence.app/polygon"),
+  undefined as any,
+  137
+);
+
+function isOrderSameAsSignedOrder(
+  signedOrder: SignedOrder,
+  trade: Trade
+): true | string {
+  //TODO
+  // if (
+  //   !trader.verifyOrderSignature(
+  //     signedOrder,
+  //     signedOrder.signature,
+  //     137,
+  //     trader.exchangeContractAddress
+  //   )
+  // ) {
+  //   return "swap SDK failed to verify order signature";
+  // }
+
+  // verify fee payer :)
+  if (signedOrder.takerAddress !== trade.users[trade.feePayer].address) {
+    return `fee payer is incorrect. expected ${signedOrder.takerAddress}, got ${
+      trade.users[trade.feePayer].address
+    }`;
+  }
+
+  const maker = trade.users[1 - trade.feePayer];
+  const taker = trade.users[trade.feePayer];
+  const order = trader.buildOrder(
+    maker.assets.map(makeSwappableAsset),
+    taker.assets.map(makeSwappableAsset),
+    maker.address,
+    {
+      takerAddress: taker.address,
+      chainId: 137,
+    }
+  );
+
+  // make sure order is same as trade
+  for (const key of Object.keys(verifyKeys) as Array<keyof typeof verifyKeys>) {
+    if (verifyKeys[key] && order[key] !== signedOrder[key]) {
+      return `order isn't the same as trade. under key ${key}, trade was ${order[key]}, but signedOrder was ${signedOrder[key]}`;
+    }
+  }
+
+  // expiration time must be <5m from now
+  const maxExpiryTime = Math.floor(new Date().getTime() / 1000) + 5 * 60; // now + 5m
+  if (Number.parseInt(signedOrder.expirationTimeSeconds, 10) > maxExpiryTime) {
+    return `Order expires in more than 5m.`;
+  }
+
+  // salt doesn't matter :)
+
+  return true;
+}
+
+function tradeIsBetweenUsers({ users }: Trade, a: Address, b: Address) {
+  return (
+    (users[0].address === a && users[1].address === b) ||
+    (users[0].address === b && users[1].address === a)
+  );
+}
+
+const verifyKeys: { [K in keyof Order]: boolean } = {
+  // expiration time manually verified
+  expirationTimeSeconds: false,
+  salt: false,
+  signature: false,
+  makerAddress: true,
+  takerAddress: true,
+  feeRecipientAddress: true,
+  senderAddress: true,
+  makerAssetAmount: true,
+  takerAssetAmount: true,
+  makerFee: true,
+  takerFee: true,
+  makerAssetData: true,
+  takerAssetData: true,
+  makerFeeAssetData: true,
+  takerFeeAssetData: true,
+};

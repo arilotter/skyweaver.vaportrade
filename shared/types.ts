@@ -1,23 +1,4 @@
-interface Order {
-  makerAddress: string;
-  takerAddress: string;
-  feeRecipientAddress: string;
-  senderAddress: string;
-  makerAssetAmount: string;
-  takerAssetAmount: string;
-  makerFee: string;
-  takerFee: string;
-  expirationTimeSeconds: string;
-  salt: string;
-  makerAssetData: string;
-  takerAssetData: string;
-  makerFeeAssetData: string;
-  takerFeeAssetData: string;
-  signature?: string;
-}
-interface SignedOrder extends Order {
-  signature: string;
-}
+import type { SignedOrder, SwappableAsset } from "@traderxyz/nft-swap-sdk";
 export type Address = string;
 export function isAddress(x: unknown): x is Address {
   return typeof x === "string" && x.startsWith("0x");
@@ -65,14 +46,14 @@ export function isSameAsset(a: Asset, b: Asset): boolean {
   );
 }
 
+export interface TradeParticipent {
+  address: Address;
+  assets: Asset[];
+  lockedIn: boolean;
+}
 export interface Trade {
-  userA: Address;
-  userB: Address;
-  feePayer: "a" | "b";
-  aAssets: Asset[];
-  bAssets: Asset[];
-  aLockedIn: boolean;
-  bLockedIn: boolean;
+  users: [TradeParticipent, TradeParticipent];
+  feePayer: 0 | 1;
   signedOrder: SignedOrder | null;
 }
 
@@ -105,5 +86,23 @@ export type UpdateTradeMessage = { type: "update_trade"; with: Address } & (
       myOffer: Asset[];
     }
   | { iPayFees: boolean }
-  | { lockIn: true }
+  | { lockIn: boolean }
+  | { signedOrder: SignedOrder }
 );
+
+export function makeSwappableAsset(asset: Asset): SwappableAsset {
+  if (asset.address === SW_CONTRACT) {
+    return {
+      type: "ERC1155",
+      tokenAddress: asset.address,
+      tokenId: asset.id,
+      amount: asset.amount,
+    };
+  } else {
+    return {
+      type: "ERC20",
+      amount: asset.amount,
+      tokenAddress: asset.address,
+    };
+  }
+}

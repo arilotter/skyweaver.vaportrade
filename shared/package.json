@@ -2,6 +2,7 @@
   "name": "shared",
   "version": "1.0.0",
   "dependencies": {
+    "@traderxyz/nft-swap-sdk": "^0.30.0",
     "ethers": "^5.7.1"
   }
 }

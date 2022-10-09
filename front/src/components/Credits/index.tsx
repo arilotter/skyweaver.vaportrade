@@ -54,9 +54,8 @@ export function Credits({ onClose }: CreditsProps) {
           <a href="https://vitejs.dev/">vite</a>
         </p>
         <p>
-          Vaportrade &times; Skyweaver is dedicated to everyone in the Skyweaver
-          Discord who got scammed - you motivated me to never let that happen
-          again.
+          Vaportrade &times; Skyweaver is dedicated to everyone who got scammed
+          because they couldn't get the OG Vaportrade to work.
         </p>
         <p>
           Follow
