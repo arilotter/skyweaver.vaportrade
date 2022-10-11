@@ -1,6 +1,7 @@
 .header {
   display: flex;
   padding: 8px;
+  padding-top: 0;
 }
 
 .headerText {

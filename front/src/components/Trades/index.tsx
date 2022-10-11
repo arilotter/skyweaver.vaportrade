@@ -1,7 +1,7 @@
 import { SequenceIndexerClient, TokenBalance } from "@0xsequence/indexer";
 import { BigNumber } from "@ethersproject/bignumber";
 import { NftSwapV3 } from "@traderxyz/nft-swap-sdk";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Blocky from "react-blockies";
 import {
   Address,
@@ -10,8 +10,8 @@ import {
   USDC_CONTRACT,
   VTMessage,
 } from "../../../../shared";
-import { FilterTokenBalanceGrid } from "../FilterTokenBalanceGrid";
 import { ResponsiveAddress } from "../ResponsiveAddress";
+import { TokenBalanceGrid } from "../TokenBalanceGrid";
 import { TradeUI } from "../TradeUI";
 import { UsersList } from "../UsersList";
 import "./Trades.css";
@@ -83,36 +83,63 @@ export function Trades({
     }
   }, [trades]);
 
-  const activeTrade = activeTradePartner
-    ? trades.find((t) => t.users.some((u) => u.address === activeTradePartner))
-    : null;
+  const activeTrade = useMemo(
+    () =>
+      activeTradePartner
+        ? trades.find((t) =>
+            t.users.some((u) => u.address === activeTradePartner)
+          )
+        : null,
+    [trades, activeTradePartner]
+  );
 
-  const them = activeTrade
-    ? activeTrade.users.find((u) => u.address !== address)
-    : null;
+  const them = useMemo(
+    () =>
+      activeTrade ? activeTrade.users.find((u) => u.address !== address) : null,
+    [trades, activeTrade, address]
+  );
 
-  const me = activeTrade
-    ? activeTrade.users.find((u) => u.address === address)
-    : null;
+  const me = useMemo(
+    () =>
+      activeTrade ? activeTrade.users.find((u) => u.address === address) : null,
+    [trades, activeTrade, address]
+  );
+  let tokenBalancesMinusActiveTrade = useMemo(() => {
+    let bal: TokenBalance[] = [];
+    if (me && tokenBalances.has(address)) {
+      const allTokens = tokenBalances.get(address)!;
+      bal = allTokens.map((t) => {
+        const inTrade = me.assets.find(
+          (i) =>
+            i.address === t.contractAddress &&
+            (i.address !== SW_CONTRACT || i.id === t.tokenID)
+        );
+        return {
+          ...t,
+          balance: BigNumber.from(t.balance)
+            .sub(inTrade?.amount ?? 0)
+            .toString(),
+        };
+      });
+    }
+    return bal;
+  }, [me, tokenBalances, activeTrade]);
 
-  let tokenBalancesMinusActiveTrade: TokenBalance[] = [];
-  if (me && tokenBalances.has(address)) {
-    const allTokens = tokenBalances.get(address)!;
-    tokenBalancesMinusActiveTrade = allTokens.map((t) => {
-      const inTrade = me.assets.find(
-        (i) =>
-          i.address === t.contractAddress &&
-          (i.address !== SW_CONTRACT || i.id === t.tokenID)
-      );
-      return {
-        ...t,
-        balance: BigNumber.from(t.balance)
-          .sub(inTrade?.amount ?? 0)
-          .toString(),
-      };
-    });
-  }
-
+  const [search, setSearch] = useState("");
+  const filtered = useMemo(() => {
+    const lowerSearch = search.toLowerCase().split(" ");
+    return tokenBalancesMinusActiveTrade.filter((t) =>
+      lowerSearch.every(
+        (part) =>
+          t.tokenMetadata?.name.toLowerCase().includes(part) ||
+          t.tokenMetadata?.description.toLowerCase().includes(part) ||
+          JSON.stringify(t.tokenMetadata?.properties)
+            ?.toLowerCase()
+            .includes(part) ||
+          t.contractInfo?.name.toLowerCase().includes(part)
+      )
+    );
+  }, [tokenBalancesMinusActiveTrade, search]);
   return (
     <div>
       <div className="tradesTabs">
@@ -149,21 +176,37 @@ export function Trades({
         <>
           <div className="activeTradeContainer">
             <div>
-              <h2 className="yourItemsHeader">
-                Your items ({tokenBalancesMinusActiveTrade.length})
-                <button
-                  className="refreshButton"
-                  onClick={() => setRefreshToken(refreshToken + 1)}
-                >
-                  &#8635;
-                </button>
-              </h2>
-              <FilterTokenBalanceGrid
-                tokens={tokenBalancesMinusActiveTrade}
+              <div className="tradeHeader">
+                <div className="tradeHeaderTitles">
+                  <h2 className="yourItemsHeader">
+                    Your items{" "}
+                    <button
+                      className="refreshButton"
+                      onClick={() => setRefreshToken(refreshToken + 1)}
+                    >
+                      &#8635;
+                    </button>
+                  </h2>
+                  <h4 className="yourItemsHeader">
+                    You have {tokenBalancesMinusActiveTrade.length} unique items
+                  </h4>
+                </div>
+
+                <input
+                  className="gridSearch"
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={"Search names, prisms, elements, text..."}
+                ></input>
+              </div>
+              <TokenBalanceGrid
+                tokens={filtered}
                 className={"myTokens"}
                 allowDrag
                 tokenStyle={{
-                  height: "200px",
+                  height: "196px",
+                  width: "128px",
                 }}
               />
               <div className="loadingBalances">

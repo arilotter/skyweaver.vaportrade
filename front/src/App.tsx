@@ -15,7 +15,13 @@ export function App() {
       <header className="title" onClick={() => setCredits(true)}>
         <img src={vaportradeIcon} />
         &times;
-        <img src={skyweaverLogo} />
+        <img
+          src={skyweaverLogo}
+          style={{
+            height: "76%",
+            paddingLeft: "12px",
+          }}
+        />
       </header>
       {credits && <Credits onClose={() => setCredits(false)} />}
       <Connect

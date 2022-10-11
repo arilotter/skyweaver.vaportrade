@@ -1,7 +1,6 @@
 .title {
-  border-bottom: 1px solid rgb(112, 91, 171);
+  border-bottom: 2px solid rgb(112, 91, 171);
   height: 48px;
-  line-height: 48px;
   color: white;
   display: flex;
   justify-content: flex-start;
@@ -12,5 +11,5 @@
 
 .title img {
   padding: 0 8px;
-  height: 60%;
+  height: 90%;
 }

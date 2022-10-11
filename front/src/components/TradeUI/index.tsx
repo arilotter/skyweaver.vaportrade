@@ -3,7 +3,7 @@ import { TokenBalance } from "@0xsequence/indexer";
 import { randomBytes } from "@ethersproject/random";
 import { NftSwapV3, SignedOrder } from "@traderxyz/nft-swap-sdk";
 import { BigNumber, FixedNumber } from "ethers";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Address,
   Asset,
@@ -130,7 +130,6 @@ export function TradeUI({
   useEffect(() => {
     if (me.lockedIn && them.lockedIn && !iPayFees && !trade.signedOrder) {
       const expiryTime = new Date(new Date().getTime() + 5 * 60000); // now + 5m
-      console.log("I AM MAKER");
       const order = trader.buildOrder(
         me.assets.map(makeSwappableAsset),
         them.assets.map(makeSwappableAsset),
@@ -156,7 +155,30 @@ export function TradeUI({
         });
     }
   }, [trade]);
-  console.log("Signed Order:", trade.signedOrder);
+
+  // Check if we need to approve any tokens for swapping
+  const [requiredApprovals, setRequiredApprovals] = useState<Asset[]>([]);
+  const updateApprovalStatuses = useCallback(() => {
+    (async () => {
+      const statuses = await Promise.all(
+        me.assets.map((item) =>
+          trader
+            .loadApprovalStatus(makeSwappableAsset(item), address)
+            .then((status) => ({
+              item,
+              stillNeedsApproval:
+                !status.tokenIdApproved && !status.contractApproved,
+            }))
+        )
+      );
+      setRequiredApprovals(
+        statuses.filter((t) => t.stillNeedsApproval).map((i) => i.item)
+      );
+    })();
+  }, [trade]);
+  useEffect(() => {
+    updateApprovalStatuses();
+  }, [trade, updateApprovalStatuses]);
 
   const tradeState = !me.lockedIn
     ? "lock_in"
@@ -170,7 +192,6 @@ export function TradeUI({
     ? "waiting_for_partner"
     : "waiting_for_signature";
 
-  console.log("I pay fees? ", iPayFees);
   return (
     <div style={style}>
       <Header address={me.address} isYou />
@@ -193,10 +214,21 @@ export function TradeUI({
         onDrop={onDrop}
         onRemove={onRemove}
         tokenStyle={{
-          height: "128px",
+          width: "128px",
         }}
       />
-      <div className="lockInContainer">
+      <div className="feesSelector">
+        <label>
+          <input
+            type="radio"
+            disabled={Boolean(me.lockedIn)}
+            onChange={(e) => {
+              if (e.target.checked) setIPayFees(true);
+            }}
+            checked={iPayFees}
+          />
+          I pay gas
+        </label>
         <LockIn
           state={tradeState}
           onClick={() => {
@@ -213,20 +245,6 @@ export function TradeUI({
             }
           }}
         />
-      </div>
-      <div className="feesSelector">
-        <label>
-          <input
-            type="radio"
-            disabled={Boolean(me.lockedIn)}
-            onChange={(e) => {
-              if (e.target.checked) setIPayFees(true);
-            }}
-            checked={iPayFees}
-          />
-          I'll pay fees
-        </label>
-        <div>⇵</div>
         <label>
           <input
             type="radio"
@@ -236,7 +254,7 @@ export function TradeUI({
             }}
             checked={!iPayFees}
           />
-          They'll pay fees
+          They pay gas
         </label>
       </div>
       <Header address={them.address} isYou={false} />
@@ -256,7 +274,7 @@ export function TradeUI({
           })
           .filter((x): x is TokenBalance => !!x)}
         tokenStyle={{
-          height: "128px",
+          width: "128px",
         }}
       />
     </div>

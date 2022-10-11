@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import { App } from "./App";
 import "./index.css";
 
-await initWallet("polygon");
+await initWallet("polygon", { walletAppURL: "http://localhost:3333" });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
