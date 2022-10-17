@@ -1,4 +1,3 @@
-import { sequence } from "0xsequence";
 import { TokenBalance } from "@0xsequence/indexer";
 import { randomBytes } from "@ethersproject/random";
 import { NftSwapV3, SignedOrder } from "@traderxyz/nft-swap-sdk";
@@ -128,7 +127,13 @@ export function TradeUI({
   );
 
   useEffect(() => {
-    if (me.lockedIn && them.lockedIn && !iPayFees && !trade.signedOrder) {
+    if (
+      me.lockedIn &&
+      them.lockedIn &&
+      !iPayFees &&
+      !trade.signedOrder &&
+      requiredApprovals.length === 0
+    ) {
       const expiryTime = new Date(new Date().getTime() + 5 * 60000); // now + 5m
       const order = trader.buildOrder(
         me.assets.map(makeSwappableAsset),
@@ -184,6 +189,8 @@ export function TradeUI({
     ? "lock_in"
     : !them.lockedIn
     ? "waiting_for_partner"
+    : requiredApprovals.length
+    ? "waiting_for_asset_approval"
     : iPayFees
     ? trade.signedOrder
       ? "submit_order"
@@ -196,6 +203,7 @@ export function TradeUI({
     <div style={style}>
       <Header address={me.address} isYou />
       <TokenBalanceGrid
+        className="tradeTokens"
         tokens={me.assets
           .map((asset) => {
             const meta = tokenBalances
@@ -259,6 +267,7 @@ export function TradeUI({
       </div>
       <Header address={them.address} isYou={false} />
       <TokenBalanceGrid
+        className="tradeTokens"
         tokens={them.assets
           .map((asset) => {
             const meta = tokenBalances

@@ -30,3 +30,8 @@
   background: white;
   color: black;
 }
+
+.tradeTokens {
+  max-height: 50%;
+  overflow: scroll;
+}

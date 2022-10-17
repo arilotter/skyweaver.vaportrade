@@ -141,7 +141,7 @@ export function Trades({
     );
   }, [tokenBalancesMinusActiveTrade, search]);
   return (
-    <div>
+    <div className="trades">
       <div className="tradesTabs">
         <label htmlFor={"browser"} className="tradesTab">
           Trade Requests
@@ -175,7 +175,7 @@ export function Trades({
       {!!(activeTrade && me && them) ? (
         <>
           <div className="activeTradeContainer">
-            <div>
+            <div className="yourItems">
               <div className="tradeHeader">
                 <div className="tradeHeaderTitles">
                   <h2 className="yourItemsHeader">

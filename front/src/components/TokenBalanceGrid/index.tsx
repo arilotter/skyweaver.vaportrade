@@ -1,6 +1,6 @@
 import { TokenBalance } from "@0xsequence/indexer";
 import React, { useCallback } from "react";
-import { Asset, isAsset } from "../../../../shared";
+import * as types from "../../../../shared";
 import { niceBalance } from "../../utils";
 
 import "./TokenBalanceGrid.css";
@@ -10,8 +10,8 @@ export interface TokenBalanceGridProps {
   className?: string;
   tokenStyle?: React.CSSProperties;
   allowDrag?: boolean;
-  onDrop?: (asset: Asset) => void;
-  onRemove?: (asset: Asset) => void;
+  onDrop?: (asset: types.Asset) => void;
+  onRemove?: (asset: types.Asset) => void;
   placeholder?: boolean;
 }
 
@@ -39,9 +39,11 @@ export function TokenBalanceGrid({
         return;
       }
       event.preventDefault();
-      const asset = JSON.parse(event.dataTransfer.getData("asset"));
-      if (isAsset(asset)) {
-        onDrop(asset);
+      try {
+        const asset = JSON.parse(event.dataTransfer.getData("asset"));
+        onDrop(types.asset.parse(asset));
+      } catch (err) {
+        console.warn("invalid drop data:" + err);
       }
       setIsDraggingOver(false);
     },
@@ -50,7 +52,7 @@ export function TokenBalanceGrid({
 
   const onDragStart = useCallback(
     (balance: TokenBalance) => (event: React.DragEvent<HTMLDivElement>) => {
-      const asset: Asset = {
+      const asset: types.Asset = {
         address: balance.contractAddress as any,
         amount: balance.balance,
         id: balance.tokenID,

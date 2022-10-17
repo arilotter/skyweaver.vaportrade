@@ -1,43 +1,40 @@
 import type { SignedOrder, SwappableAsset } from "@traderxyz/nft-swap-sdk";
-export type Address = string;
-export function isAddress(x: unknown): x is Address {
-  return typeof x === "string" && x.startsWith("0x");
-}
+import { BigNumber, ethers } from "ethers";
+import { z } from "zod";
+
+export const address = z.string().refine(ethers.utils.isAddress);
+export type Address = z.infer<typeof address>;
 
 export const SW_CONTRACT = "0x631998e91476da5b870d741192fc5cbc55f5a52e";
-export function isSwContract(x: unknown): x is typeof SW_CONTRACT {
-  return x === SW_CONTRACT;
-}
 
 export const USDC_CONTRACT = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174";
-export function isUdscContract(x: unknown): x is typeof SW_CONTRACT {
-  return x === USDC_CONTRACT;
-}
 
-export type Asset =
-  | {
-      address: typeof USDC_CONTRACT;
-      amount: string;
+const bigNumberString = z.string().refine(
+  (value) => {
+    try {
+      BigNumber.from(value);
+      return true;
+    } catch {
+      return false;
     }
-  | {
-      address: typeof SW_CONTRACT;
-      id: string;
-      amount: string;
-    };
+  },
+  (val) => ({
+    message: `${val} is not a valid BigNumber`,
+  })
+);
+export const asset = z.union([
+  z.object({
+    address: z.literal(USDC_CONTRACT),
+    amount: bigNumberString,
+  }),
+  z.object({
+    address: z.literal(SW_CONTRACT),
+    id: bigNumberString,
+    amount: bigNumberString,
+  }),
+]);
 
-export function isAsset(x: unknown): x is Asset {
-  return (
-    !!x &&
-    typeof x === "object" &&
-    "address" in x &&
-    (isUdscContract((x as { address: unknown }).address) ||
-      (isSwContract((x as { address: unknown }).address) &&
-        "id" in x &&
-        typeof (x as { id: unknown }).id === "string")) &&
-    "amount" in x &&
-    typeof (x as { amount: unknown }).amount === "string"
-  );
-}
+export type Asset = z.infer<typeof asset>;
 
 export function isSameAsset(a: Asset, b: Asset): boolean {
   return (
@@ -46,63 +43,76 @@ export function isSameAsset(a: Asset, b: Asset): boolean {
   );
 }
 
-export interface TradeParticipent {
-  address: Address;
-  assets: Asset[];
-  lockedIn: boolean;
-}
-export interface Trade {
-  users: [TradeParticipent, TradeParticipent];
-  feePayer: 0 | 1;
-  signedOrder: SignedOrder | null;
-}
+export const order = z.object({
+  makerAddress: address,
+  takerAddress: address,
+  feeRecipientAddress: address,
+  senderAddress: address,
+  makerAssetAmount: bigNumberString,
+  takerAssetAmount: bigNumberString,
+  makerFee: bigNumberString,
+  takerFee: bigNumberString,
+  expirationTimeSeconds: bigNumberString,
+  salt: z.string(),
+  makerAssetData: z.string(),
+  takerAssetData: z.string(),
+  makerFeeAssetData: z.string(),
+  takerFeeAssetData: z.string(),
+  signature: z.string(),
+});
+export const signedOrder = order.extend({
+  signature: z.string(),
+});
 
-// TODO isTrade
-export function isTrade(x: unknown): x is Trade {
-  return typeof x === "object";
-}
+export const tradeParticipant = z.object({
+  address: address,
+  assets: z.array(asset),
+  lockedIn: z.boolean(),
+});
 
-// TODO isVTMessage
-export function isVTMessage(x: unknown): x is VTMessage {
-  return typeof x === "object";
-}
+export type TradeParticipant = z.infer<typeof tradeParticipant>;
 
-export type VTMessage =
-  | {
-      type: "init";
-      address: Address;
-    }
-  | { type: "users"; users: Address[] }
-  | {
-      type: "trade_request";
-      address: Address;
-    }
-  | { type: "trade_requests"; from: Address[] }
-  | { type: "trades"; trades: Trade[] }
-  | UpdateTradeMessage;
+export const trade = z.object({
+  users: z.array(tradeParticipant).length(2),
+  feePayer: z.union([z.literal(0), z.literal(1)]),
+  signedOrder: signedOrder.nullable(),
+});
 
-export type UpdateTradeMessage = { type: "update_trade"; with: Address } & (
-  | {
-      myOffer: Asset[];
-    }
-  | { iPayFees: boolean }
-  | { lockIn: boolean }
-  | { signedOrder: SignedOrder }
-);
+export type Trade = z.infer<typeof trade>;
 
-export function makeSwappableAsset(asset: Asset): SwappableAsset {
-  if (asset.address === SW_CONTRACT) {
-    return {
-      type: "ERC1155",
-      tokenAddress: asset.address,
-      tokenId: asset.id,
-      amount: asset.amount,
-    };
-  } else {
-    return {
-      type: "ERC20",
-      amount: asset.amount,
-      tokenAddress: asset.address,
-    };
-  }
-}
+const updateTradeMessageRequired = z.object({
+  type: z.literal("update_trade"),
+  with: address,
+});
+const updateTradeMessage = z.union([
+  updateTradeMessageRequired.extend({ myOffer: z.array(asset) }),
+  updateTradeMessageRequired.extend({ iPayFees: z.boolean() }),
+  updateTradeMessageRequired.extend({ lockIn: z.boolean() }),
+  updateTradeMessageRequired.extend({ signedOrder: signedOrder }),
+]);
+
+export const vtMessage = z.union([
+  z.object({
+    type: z.literal("init"),
+    address: address,
+  }),
+  z.object({
+    type: z.literal("users"),
+    users: z.array(address),
+  }),
+  z.object({
+    type: z.literal("trade_request"),
+    address: address,
+  }),
+  z.object({
+    type: z.literal("trade_requests"),
+    from: z.array(address),
+  }),
+  z.object({
+    type: z.literal("trades"),
+    trades: z.array(trade),
+  }),
+  updateTradeMessage,
+]);
+
+export type VTMessage = z.infer<typeof vtMessage>;

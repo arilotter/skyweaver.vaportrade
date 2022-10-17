@@ -2,7 +2,7 @@ import { Wallet } from "0xsequence";
 import { NftSwapV3 } from "@traderxyz/nft-swap-sdk";
 import { useEffect, useMemo, useState } from "react";
 import { ReadyState } from "react-use-websocket";
-import { Address, isVTMessage, Trade, VTMessage } from "../../../../shared";
+import { Address, vtMessage, Trade, VTMessage } from "../../../../shared";
 import { useWebSocket } from "../../useWebSocket";
 import { Trades } from "../Trades";
 import { WalletConnected } from "../WalletConnected";
@@ -35,19 +35,23 @@ export function ServerConnection({
   }, [readyState, address]);
 
   useEffect(() => {
-    if (!lastJsonMessage || !isVTMessage(lastJsonMessage)) {
+    if (!lastJsonMessage) {
       return;
     }
-    const msg: VTMessage = lastJsonMessage;
-    if (msg.type === "users") {
-      const notMeUsers = msg.users.filter((u) => u !== address);
-      setUsers(notMeUsers);
-      const tradesImIn = tradeRequests.filter((u) => msg.users.includes(u));
-      setTradeRequests(tradesImIn);
-    } else if (msg.type === "trade_requests") {
-      setTradeRequests(msg.from);
-    } else if (msg.type === "trades") {
-      setActiveTrades(msg.trades);
+    try {
+      const msg = vtMessage.parse(lastJsonMessage);
+      if (msg.type === "users") {
+        const notMeUsers = msg.users.filter((u) => u !== address);
+        setUsers(notMeUsers);
+        const tradesImIn = tradeRequests.filter((u) => msg.users.includes(u));
+        setTradeRequests(tradesImIn);
+      } else if (msg.type === "trade_requests") {
+        setTradeRequests(msg.from);
+      } else if (msg.type === "trades") {
+        setActiveTrades(msg.trades);
+      }
+    } catch (err) {
+      console.error("failed to apply msg from server ", err);
     }
   }, [lastJsonMessage]);
 

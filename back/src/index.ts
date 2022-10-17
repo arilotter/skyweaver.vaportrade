@@ -4,8 +4,8 @@ import {
   Address,
   Trade,
   VTMessage,
-  isVTMessage,
   makeSwappableAsset,
+  vtMessage,
 } from "../../shared";
 import { ethers } from "ethers";
 const wss = new WebSocketServer({ port: 6969 });
@@ -43,10 +43,7 @@ wss.on("connection", (ws) => {
   console.log("connected");
   ws.on("message", (rawMessage) => {
     try {
-      const msg = JSON.parse(rawMessage.toString("utf8"));
-      if (!isVTMessage(msg)) {
-        throw new Error("invalid message");
-      }
+      const msg = vtMessage.parse(JSON.parse(rawMessage.toString("utf8")));
       const isInitted = wsToAddr.has(ws);
       if (!isInitted && msg.type !== "init") {
         throw new Error("got non-init message before init!");

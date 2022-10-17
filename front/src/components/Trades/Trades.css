@@ -1,3 +1,8 @@
+.trades {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 .tradesTabs {
   padding: 16px;
   display: flex;
@@ -34,6 +39,12 @@
   visibility: hidden;
   width: 0;
   margin: 0;
+}
+
+.yourItems {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .tradeHeader {
@@ -82,7 +93,7 @@
 }
 
 .myTokens {
-  max-height: 512px;
+  height: 100%;
   overflow: scroll;
 }
 
@@ -90,6 +101,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   column-gap: 10px;
+  height: 100%;
 }
 
 .loadingBalances {
