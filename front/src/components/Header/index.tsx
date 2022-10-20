@@ -20,7 +20,7 @@ export function Header({
       <div className="headerText">
         <h2>{isYou ? "Your" : "Their"} offer</h2>
         <h4>
-          These are the items you'll {isYou ? "lose" : "get"} in the trade
+          These are the items you&apos;ll {isYou ? "lose" : "get"} in the trade
         </h4>
       </div>
     </div>

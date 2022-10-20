@@ -1,4 +1,4 @@
-import { getWallet, Wallet } from "0xsequence";
+import { getWallet } from "0xsequence";
 import { useEffect, useState } from "react";
 
 import sequenceLogo from "./sequence-icon.svg";
@@ -10,7 +10,7 @@ import "./ConnectButton.css";
 export function Connect({
   afterConnect,
 }: {
-  afterConnect: (wallet: Wallet, address: Address) => JSX.Element;
+  afterConnect: (address: Address) => JSX.Element;
 }) {
   const [connected, setConnected] = useState(getWallet().isConnected());
   useEffect(() => {
@@ -32,7 +32,7 @@ export function Connect({
     } else {
       setAddress(null);
     }
-  }, [setAddress]);
+  }, [setAddress, connected]);
   if (!connected || !address) {
     return (
       <div className="connectContainer">
@@ -64,5 +64,5 @@ export function Connect({
       </div>
     );
   }
-  return afterConnect(getWallet(), address);
+  return afterConnect(address);
 }

@@ -55,7 +55,7 @@ export function Credits({ onClose }: CreditsProps) {
         </p>
         <p>
           Vaportrade &times; Skyweaver is dedicated to everyone who got scammed
-          because they couldn't get the OG Vaportrade to work.
+          because they couldn&apos;t get the OG Vaportrade to work.
         </p>
         <p>
           Follow

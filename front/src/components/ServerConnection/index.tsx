@@ -1,8 +1,8 @@
-import { Wallet } from "0xsequence";
+import { getWallet } from "0xsequence";
 import { NftSwapV3 } from "@traderxyz/nft-swap-sdk";
 import { useEffect, useMemo, useState } from "react";
 import { ReadyState } from "react-use-websocket";
-import { Address, vtMessage, Trade, VTMessage } from "../../../../shared";
+import { Address, vtMessage, Trade } from "../../../../shared";
 import { useWebSocket } from "../../useWebSocket";
 import { Trades } from "../Trades";
 import { WalletConnected } from "../WalletConnected";
@@ -11,13 +11,7 @@ import "./ServerConnection.css";
 
 const socketURL = `ws://${window.location.hostname}:6969`;
 
-export function ServerConnection({
-  wallet,
-  address,
-}: {
-  wallet: Wallet;
-  address: Address;
-}) {
+export function ServerConnection({ address }: { address: Address }) {
   const { sendJsonMessage, lastJsonMessage, readyState } =
     useWebSocket(socketURL);
 
@@ -32,7 +26,7 @@ export function ServerConnection({
       type: "init",
       address,
     });
-  }, [readyState, address]);
+  }, [readyState, address, sendJsonMessage]);
 
   useEffect(() => {
     if (!lastJsonMessage) {
@@ -53,18 +47,21 @@ export function ServerConnection({
     } catch (err) {
       console.error("failed to apply msg from server ", err);
     }
-  }, [lastJsonMessage]);
+  }, [address, lastJsonMessage, tradeRequests]);
 
-  const trader = useMemo(
-    () => new NftSwapV3(wallet.getProvider(137)!, wallet.getSigner(137), 137),
-    [wallet]
-  );
+  const trader = useMemo(() => {
+    const provider = getWallet().getProvider();
+    if (!provider) {
+      throw new Error("failed to get provider!");
+    }
+    return new NftSwapV3(provider, getWallet().getSigner(137), 137);
+  }, []);
 
   const [users, setUsers] = useState<string[]>([]);
 
   return (
     <>
-      <WalletConnected wallet={wallet} address={address} />
+      <WalletConnected address={address} />
       {readyState !== ReadyState.OPEN ? (
         <div className="connectingToServer">Connecting to server...</div>
       ) : (

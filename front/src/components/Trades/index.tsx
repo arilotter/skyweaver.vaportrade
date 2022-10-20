@@ -46,11 +46,11 @@ export function Trades({
     if (trades.length && lastNumTrades !== trades.length) {
       const newTrade = trades[trades.length - 1];
       setActiveTrade(
-        newTrade.users.find((u) => u.address !== address)!.address
+        newTrade.users.find((u) => u.address !== address)?.address ?? null
       );
     }
     setLastNumTrades(trades.length);
-  }, [trades, setActiveTrade, lastNumTrades]);
+  }, [trades, setActiveTrade, lastNumTrades, address]);
 
   // Refresh everyone's balances when we change set of addresses!
   useEffect(() => {
@@ -81,7 +81,7 @@ export function Trades({
     if (hasNewAddress) {
       setAllAddresses(tradeAddresses);
     }
-  }, [trades]);
+  }, [trades, allAddresses]);
 
   const activeTrade = useMemo(
     () =>
@@ -96,18 +96,18 @@ export function Trades({
   const them = useMemo(
     () =>
       activeTrade ? activeTrade.users.find((u) => u.address !== address) : null,
-    [trades, activeTrade, address]
+    [activeTrade, address]
   );
 
   const me = useMemo(
     () =>
       activeTrade ? activeTrade.users.find((u) => u.address === address) : null,
-    [trades, activeTrade, address]
+    [activeTrade, address]
   );
-  let tokenBalancesMinusActiveTrade = useMemo(() => {
+  const tokenBalancesMinusActiveTrade = useMemo(() => {
     let bal: TokenBalance[] = [];
     if (me && tokenBalances.has(address)) {
-      const allTokens = tokenBalances.get(address)!;
+      const allTokens = tokenBalances.get(address) ?? [];
       bal = allTokens.map((t) => {
         const inTrade = me.assets.find(
           (i) =>
@@ -123,7 +123,7 @@ export function Trades({
       });
     }
     return bal;
-  }, [me, tokenBalances, activeTrade]);
+  }, [address, me, tokenBalances]);
 
   const [search, setSearch] = useState("");
   const filtered = useMemo(() => {
@@ -153,7 +153,10 @@ export function Trades({
           />
         </label>
         {trades.map((t) => {
-          const notMe = t.users.find((t) => t.address !== address)!.address;
+          const notMe = t.users.find((t) => t.address !== address)?.address;
+          if (!notMe) {
+            throw new Error("got trade without us in it??");
+          }
           return (
             <label key={`${notMe}-radio`} className="tradesTab">
               <Blocky
@@ -172,7 +175,7 @@ export function Trades({
           );
         })}
       </div>
-      {!!(activeTrade && me && them) ? (
+      {activeTrade && me && them ? (
         <>
           <div className="activeTradeContainer">
             <div className="yourItems">
@@ -276,7 +279,7 @@ const indexer = new SequenceIndexerClient(
 );
 
 async function getTokenBalancesAll(addr: Address): Promise<TokenBalance[]> {
-  let nextPage: number = 0;
+  let nextPage = 0;
   const allBalances = [];
   while (nextPage !== -1) {
     const { page, balances } = await indexer.getTokenBalances({

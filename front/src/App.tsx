@@ -25,9 +25,7 @@ export function App() {
       </header>
       {credits && <Credits onClose={() => setCredits(false)} />}
       <Connect
-        afterConnect={(wallet, address) => (
-          <ServerConnection wallet={wallet} address={address} />
-        )}
+        afterConnect={(address) => <ServerConnection address={address} />}
       />
     </>
   );

@@ -55,7 +55,7 @@ export function TradeUI({
 
   const onDrop = useCallback(
     (asset: Asset) => {
-      let newAssets = [...me.assets];
+      const newAssets = [...me.assets];
       const toModify = me.assets.find((a) => isSameAsset(a, asset));
       const remainingAmount = BigNumber.from(asset.amount);
       const amountToAdd = remainingAmount.gt(100)
@@ -118,7 +118,7 @@ export function TradeUI({
 
       setMyTradeOffer(newAssets);
     },
-    [trade]
+    [address, me, setMyTradeOffer, tokenBalances]
   );
   const onRemove = useCallback(
     (asset: Asset) => {
@@ -131,7 +131,7 @@ export function TradeUI({
       });
       setMyTradeOffer(newAssets);
     },
-    [address, trade]
+    [me.assets, setMyTradeOffer]
   );
 
   const tradeState = useMemo(
@@ -189,7 +189,20 @@ export function TradeUI({
           alert(err);
         });
     }
-  }, [trade]);
+  }, [
+    iPayFees,
+    me.address,
+    me.assets,
+    me.lockedIn,
+    requiredApprovals.length,
+    setLockedIn,
+    setSignedOrder,
+    them.address,
+    them.assets,
+    them.lockedIn,
+    trade,
+    trader,
+  ]);
 
   // Check if we need to approve any tokens for swapping
   const updateApprovalStatuses = useCallback(() => {
@@ -209,7 +222,7 @@ export function TradeUI({
         statuses.filter((t) => t.stillNeedsApproval).map((i) => i.item)
       );
     })();
-  }, [trade]);
+  }, [address, me.assets, trader]);
   useEffect(() => {
     updateApprovalStatuses();
   }, [trade, updateApprovalStatuses]);
@@ -286,8 +299,12 @@ export function TradeUI({
               //     signer,
               //   });
               // })
+              const so = trade.signedOrder;
+              if (!so) {
+                throw new Error("missing signed order ,impossible state");
+              }
               trader
-                .fillSignedOrder(trade.signedOrder!)
+                .fillSignedOrder(so)
                 .then(() => {
                   alert("Trade success!");
                 })

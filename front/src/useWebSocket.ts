@@ -9,6 +9,6 @@ export function useWebSocket(url: string): WebSocketHook {
 type SendJsonMessage = (jsonMessage: VTMessage, keep?: boolean) => void;
 type WebSocketHook = {
   sendJsonMessage: SendJsonMessage;
-  lastJsonMessage: object | Array<any> | null;
+  lastJsonMessage: object | Array<object | null> | null;
   readyState: ReadyState;
 };

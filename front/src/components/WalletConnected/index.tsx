@@ -1,22 +1,16 @@
-import { Wallet } from "0xsequence";
+import { getWallet } from "0xsequence";
 import Blocky from "react-blockies";
 import { Address } from "../../../../shared";
 import { ResponsiveAddress } from "../ResponsiveAddress";
 
 import "./WalletConnected.css";
 
-export function WalletConnected({
-  wallet,
-  address,
-}: {
-  wallet: Wallet;
-  address: Address;
-}) {
+export function WalletConnected({ address }: { address: Address }) {
   return (
     <div
       className="walletConnected"
       onClick={() => {
-        wallet.openWallet();
+        getWallet().openWallet();
       }}
     >
       <Blocky
@@ -28,7 +22,7 @@ export function WalletConnected({
       <ResponsiveAddress address={address} />
       <button
         onClick={() => {
-          wallet.disconnect();
+          getWallet().disconnect();
         }}
       >
         &times;

@@ -14,7 +14,7 @@ import { TransactionResponse } from "0xsequence/dist/declarations/src/transactio
 export async function bundleTransactions(
   wallet: Wallet,
   collect: (signer: BundlingSigner) => Promise<void> | void
-): Promise<TransactionResponse<any>> {
+): Promise<TransactionResponse<unknown>> {
   const bundleSigner = new BundlingSigner(await wallet.getAddress(), wallet);
   await collect(bundleSigner);
   return bundleSigner.sendBundledTransactions();
@@ -57,7 +57,7 @@ class BundlingSigner extends Signer implements TypedDataSigner {
   _signTypedData(
     _domain: TypedDataDomain,
     _types: Record<string, Array<TypedDataField>>,
-    _value: Record<string, any>
+    _value: Record<string, unknown>
   ): Promise<string> {
     throw new Error("BundlingSigner cannot sign typed data");
   }
@@ -74,7 +74,6 @@ class BundlingSigner extends Signer implements TypedDataSigner {
       this._bundledTransactions.map(resolveProperties)
     );
     if (!preparedTxs.length) {
-      debugger;
       throw new Error("empty bundle list");
     }
     console.log("Sending bundle:", preparedTxs);

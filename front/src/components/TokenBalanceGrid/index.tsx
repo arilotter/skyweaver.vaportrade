@@ -53,7 +53,7 @@ export function TokenBalanceGrid({
   const onDragStart = useCallback(
     (balance: TokenBalance) => (event: React.DragEvent<HTMLDivElement>) => {
       const asset: types.Asset = {
-        address: balance.contractAddress as any,
+        address: balance.contractAddress as types.Asset["address"],
         amount: balance.balance,
         id: balance.tokenID,
       };
@@ -110,7 +110,7 @@ export function TokenBalanceGrid({
                   className="removeBubble"
                   onClick={() =>
                     onRemove({
-                      address: b.contractAddress as any,
+                      address: b.contractAddress as types.Asset["address"],
                       amount: b.balance,
                       id: b.tokenID,
                     })
