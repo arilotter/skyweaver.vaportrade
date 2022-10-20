@@ -9,9 +9,9 @@ import { WalletConnected } from "../WalletConnected";
 
 import "./ServerConnection.css";
 
-const socketURL = `ws://${window.location.hostname}${
-  window.location.port ? `:${window.location.port}` : ""
-}/api/`;
+const socketURL = `ws${window.location.protocol.includes("s") ? "s" : ""}://${
+  window.location.hostname
+}${window.location.port ? `:${window.location.port}` : ""}/api/`;
 
 export function ServerConnection({ address }: { address: Address }) {
   const { sendJsonMessage, lastJsonMessage, readyState } =
