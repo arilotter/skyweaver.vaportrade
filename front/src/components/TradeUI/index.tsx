@@ -1,8 +1,10 @@
+import { getWallet } from "0xsequence";
 import { TokenBalance } from "@0xsequence/indexer";
+import { arrayify, hexlify } from "@ethersproject/bytes";
 import { randomBytes } from "@ethersproject/random";
 import { NftSwapV3, SignedOrder } from "@traderxyz/nft-swap-sdk";
 import { BigNumber, FixedNumber } from "ethers";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Address,
   Asset,
@@ -12,6 +14,7 @@ import {
   USDC_CONTRACT,
   makeSwappableAsset,
 } from "../../../../shared";
+import { bundleTransactions } from "../../BundlingSigner";
 import { niceBalance } from "../../utils";
 import { Header } from "../Header";
 import { LockIn } from "../LockIn";
@@ -40,10 +43,15 @@ export function TradeUI({
   style?: React.CSSProperties;
   tokenBalances: Map<Address, TokenBalance[]>;
 }) {
-  const meIndex = trade.users.findIndex((t) => t.address === address);
-  const me = trade.users[meIndex];
-  const them = trade.users[1 - meIndex];
-  const iPayFees = meIndex === trade.feePayer;
+  const [requiredApprovals, setRequiredApprovals] = useState<Asset[]>([]);
+
+  const meIndex = useMemo(
+    () => trade.users.findIndex((t) => t.address === address),
+    [trade, address]
+  );
+  const me = useMemo(() => trade.users[meIndex], [trade, meIndex]);
+  const them = useMemo(() => trade.users[1 - meIndex], [trade, meIndex]);
+  const iPayFees = useMemo(() => meIndex === trade.feePayer, [trade, meIndex]);
 
   const onDrop = useCallback(
     (asset: Asset) => {
@@ -126,6 +134,26 @@ export function TradeUI({
     [address, trade]
   );
 
+  const tradeState = useMemo(
+    () =>
+      !me.assets.length && !them.assets.length
+        ? "add_items"
+        : !me.lockedIn
+        ? "lock_in"
+        : !them.lockedIn
+        ? "waiting_for_partner"
+        : iPayFees
+        ? trade.signedOrder
+          ? "submit_order"
+          : "waiting_for_partner"
+        : trade.signedOrder
+        ? "waiting_for_partner"
+        : requiredApprovals.length
+        ? "waiting_for_asset_approval"
+        : "waiting_for_signature",
+    [me, them, trade, iPayFees, requiredApprovals]
+  );
+
   useEffect(() => {
     if (
       me.lockedIn &&
@@ -147,12 +175,14 @@ export function TradeUI({
         }
       );
       // pop wallet to sign :)
+      // const signableMsg = signableOrderMessage()
       trader
-        .signOrder(order, me.address, undefined, {
-          signatureType: "eip1271",
-        })
+        .signOrder(order, me.address)
         .then((signedOrder) => {
-          setSignedOrder(signedOrder);
+          setSignedOrder({
+            ...signedOrder,
+            signature: hexlify(arrayify(signedOrder.signature)),
+          });
         })
         .catch((err) => {
           setLockedIn(false);
@@ -162,7 +192,6 @@ export function TradeUI({
   }, [trade]);
 
   // Check if we need to approve any tokens for swapping
-  const [requiredApprovals, setRequiredApprovals] = useState<Asset[]>([]);
   const updateApprovalStatuses = useCallback(() => {
     (async () => {
       const statuses = await Promise.all(
@@ -184,20 +213,6 @@ export function TradeUI({
   useEffect(() => {
     updateApprovalStatuses();
   }, [trade, updateApprovalStatuses]);
-
-  const tradeState = !me.lockedIn
-    ? "lock_in"
-    : !them.lockedIn
-    ? "waiting_for_partner"
-    : requiredApprovals.length
-    ? "waiting_for_asset_approval"
-    : iPayFees
-    ? trade.signedOrder
-      ? "submit_order"
-      : "waiting_for_partner"
-    : trade.signedOrder
-    ? "waiting_for_partner"
-    : "waiting_for_signature";
 
   return (
     <div style={style}>
@@ -240,13 +255,44 @@ export function TradeUI({
         <LockIn
           state={tradeState}
           onClick={() => {
-            if (tradeState === "submit_order") {
+            if (tradeState === "waiting_for_asset_approval") {
+              bundleTransactions(getWallet(), async (signer) => {
+                for (const approval of requiredApprovals) {
+                  await trader.approveTokenOrNftByAsset(
+                    makeSwappableAsset(approval),
+                    address,
+                    undefined,
+                    {
+                      signer,
+                    }
+                  );
+                }
+              }).finally(() => {
+                updateApprovalStatuses();
+              });
+            } else if (tradeState === "submit_order") {
+              // bundleTransactions(getWallet(), async (signer) => {
+              //   for (const approval of requiredApprovals) {
+              //     await trader.approveTokenOrNftByAsset(
+              //       makeSwappableAsset(approval),
+              //       address,
+              //       undefined,
+              //       {
+              //         signer,
+              //       }
+              //     );
+              //   }
+              //   await trader.fillSignedOrder(trade.signedOrder!, {
+              //     signer,
+              //   });
+              // })
               trader
-                .fillSignedOrder(trade.signedOrder!, undefined, {
-                  gasLimit: 100000000000000,
-                })
+                .fillSignedOrder(trade.signedOrder!)
                 .then(() => {
                   alert("Trade success!");
+                })
+                .finally(() => {
+                  updateApprovalStatuses();
                 });
             } else {
               setLockedIn(true);

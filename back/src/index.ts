@@ -185,7 +185,7 @@ function resetTradeOnChange(trade: Trade) {
 
 const trader = new NftSwapV3(
   new ethers.providers.JsonRpcProvider("https://nodes.sequence.app/polygon"),
-  undefined as any,
+  new ethers.VoidSigner("0"),
   137
 );
 
@@ -193,7 +193,6 @@ function isOrderSameAsSignedOrder(
   signedOrder: SignedOrder,
   trade: Trade
 ): true | string {
-  //TODO
   // if (
   //   !trader.verifyOrderSignature(
   //     signedOrder,

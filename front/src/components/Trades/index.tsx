@@ -293,7 +293,6 @@ async function getTokenBalancesAll(addr: Address): Promise<TokenBalance[]> {
     } else {
       nextPage = -1;
     }
-    await new Promise((res) => setTimeout(res, 300));
   }
   return allBalances;
 }
