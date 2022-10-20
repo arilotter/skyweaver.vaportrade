@@ -3,7 +3,7 @@ import { TokenBalance } from "@0xsequence/indexer";
 import { arrayify, hexlify } from "@ethersproject/bytes";
 import { randomBytes } from "@ethersproject/random";
 import { NftSwapV3, SignedOrder } from "@traderxyz/nft-swap-sdk";
-import { BigNumber, FixedNumber } from "ethers";
+import { BigNumber, FixedNumber } from "@ethersproject/bignumber";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Address,

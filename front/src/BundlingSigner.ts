@@ -3,7 +3,10 @@ import { Provider } from "@ethersproject/abstract-provider";
 import { Deferrable, defineReadOnly } from "@ethersproject/properties";
 import { Bytes } from "@ethersproject/bytes";
 import { TransactionRequest } from "@ethersproject/providers";
-import { TypedDataDomain, TypedDataField } from "ethers";
+import {
+  TypedDataDomain,
+  TypedDataField,
+} from "@ethersproject/abstract-signer";
 import { resolveProperties } from "@ethersproject/properties";
 import { Wallet } from "0xsequence";
 import { TransactionResponse } from "0xsequence/dist/declarations/src/transactions";
